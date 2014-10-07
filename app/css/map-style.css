@@ -6,7 +6,15 @@ body {
   text-align: center;
 }
 
+main.container-fluid {
+    padding-right: 0;
+}
+
 #mapDiv {
     min-height: 100px;
     max-height: 1000px;
+}
+
+#mapParent {
+    padding-right: 0;
 }

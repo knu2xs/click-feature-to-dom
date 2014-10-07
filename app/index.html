@@ -28,7 +28,7 @@
 <body>
 
 <div class="navbar navbar-inverse navbar-fixed-top">
-    <div class="container">
+    <div class="container-fluid">
         <div class="navbar-header">
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                 <span class="icon-bar"></span>
@@ -48,25 +48,20 @@
     </div>
 </div>
 
-<div class="container">
+<main class="container-fluid">
 
-    <div class="starter-template">
+    <div class="col-sm-3">
         <h1>Bootstrap starter template</h1>
-
         <p class="lead">Use this document as a way to quickly start any new project.<br> All you get is this text and a
             mostly barebones HTML document.</p>
     </div>
 
     <!-- Bootstrap-map-js -->
-    <div id="mapDiv"></div>
-
-    <hr/>
-
-</div>
+    <div id="mapParent" class="col-sm-9">
+        <div id="mapDiv"></div>
+    </div>
+</main>
 <!-- /.container -->
-
-<!-- Bootstrap-map-js -->
-<div id="mapDiv"></div>
 
 <!-- script imports -->
 <script src="js/lib/dojo-config.js"></script>
