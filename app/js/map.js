@@ -59,6 +59,51 @@ require(["esri/map",
             map.setBasemap('streets');
         });
 
+        // function to fetch remote content from AW
+        var getDescription = function(awid){
+
+            $.ajax({
+                type: 'GET',
+                url: "http://www.americanwhitewater.org/content/River/detail/id/" + awid,
+                dataType: 'html',
+                success: function(data) {
+
+                    //cross platform xml object creation from w3schools
+                    try //Internet Explorer
+                    {
+                        var xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
+                        xmlDoc.async = "false";
+                        xmlDoc.loadXML(data);
+                    }
+                    catch(e)
+                    {
+                        try // Firefox, Mozilla, Opera, etc.
+                        {
+                            var parser = new DOMParser();
+                            var xmlDoc  = parser.parseFromString(data,"text/xml");
+                        }
+                        catch(e)
+                        {
+                            alert(e.message);
+                            return;
+                        }
+                    }
+
+                    // patch the prototype for what I need
+                    xmlDoc.prototype.getKeyByValue = function( value ) {
+                        for( var prop in this ) {
+                            if( this.hasOwnProperty( prop ) ) {
+                                if( this[ prop ] === value )
+                                    return prop;
+                            }
+                        }
+                    };
+
+                    return(xmlDoc.getKeyByValue("River Description")[0].childNodes[0].nodeValue);
+                }
+            });
+        };
+
         // add click event listener for put-ins
         whitewater.on("click", function(event){
 
@@ -82,5 +127,6 @@ require(["esri/map",
             $('span#difficulty').text(attr.difficulty);
             $('a#linkUrl').attr('href', linkUrl);
             $('span#linkName').text(linkName);
+            $('span#description').text(getDescription(attr.awid));
         });
     });

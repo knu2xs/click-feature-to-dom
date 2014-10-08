@@ -18,8 +18,7 @@ main.container-fluid {
 }
 
 #mapDiv {
-    min-height: 100px;
-    max-height: 1000px;
+    height: 100%;
 }
 
 #mapParent {
