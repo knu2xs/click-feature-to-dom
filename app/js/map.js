@@ -83,4 +83,27 @@ require(["esri/map",
             $('a#linkUrl').attr('href', linkUrl);
             $('span#linkName').text(linkName);
         });
+
+        // form processing for filter by difficulty
+        $('form#filterByDifficulty').submit( function() {
+            var diffArray = [];
+
+            // check for river difficulty checked
+            function checkDifficulty(elementId){
+                if ($(elementId).checked) {
+                    diffArray.push($(elementId).value);
+                }
+            }
+
+            // check all difficulties
+            checkDifficulty('I');
+            checkDifficulty('II');
+            checkDifficulty('III');
+            checkDifficulty('IV');
+            checkDifficulty('V');
+            checkDifficulty('VI');
+
+            // create the sql string to filter by
+
+        });
     });
