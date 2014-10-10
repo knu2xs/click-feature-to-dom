@@ -86,7 +86,10 @@ require(["esri/map",
 
         // form processing for filter by difficulty
         $('form#filterByDifficulty').submit( function() {
-            var diffArray = [];
+
+            var diffArray = []; // array to store difficulty levels selected
+            var query = ''; // store built query string
+            var counter = 0; // counter to store iterations though loop
 
             // check for river difficulty checked
             function checkDifficulty(elementId){
@@ -103,7 +106,37 @@ require(["esri/map",
             checkDifficulty('V');
             checkDifficulty('VI');
 
-            // create the sql string to filter by
+            // if only interested in one difficulty
+            if (diffArray.length === 1) {
+
+                // create single sql statement
+                query = "difficulty_max LIKE '{0}%'".format(diffArray[0]);
+
+            // otherwise, if there are multiple difficulty levels checked
+            } else {
+
+                // loop through every difficulty level
+                for (var diffLevel in diffArray){
+
+                    // if not the last, create sql for difficulty level and include 'OR' on the sql string
+                    if (diffArray.length > counter){
+                        query = query + " difficulty_max LIKE '{0}%' OR".format(diffArray[0]);
+
+                    // if last in the array, do not add 'OR' onto the end of the string
+                    } else {
+                        query = query + " difficulty_max LIKE '{0}%'".format(diffArray[0]);
+                    }
+
+                    // increment the counter
+                    counter++;
+                }
+            }
+
+            // apply the sql statement to the feature layer
+            whitewater.setDefinitionExpression(query);
+
+            // close the dialog
+            $('div#difficultyModal').modal('hide')
 
         });
     });
