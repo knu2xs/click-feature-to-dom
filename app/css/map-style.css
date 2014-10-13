@@ -9,6 +9,7 @@ html, body {
     width:100%;
     margin:0;
     padding:0;
+    overflow: hidden;
 }
 
 body {
@@ -25,8 +26,6 @@ main.container-fluid {
 }
 
 #mapDiv {
-    min-height: 100px;
-    max-height: 1000px;
     height:100%;
     width:100%;
 }
