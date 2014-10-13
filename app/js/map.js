@@ -3,13 +3,18 @@ require(["esri/map",
         "esri/geometry/Point",
         "esri/dijit/Scalebar",
         "esri/layers/FeatureLayer",
+        "esri/symbols/SimpleMarkerSymbol",
+        "esri/symbols/SimpleLineSymbol",
+        "esri/Color",
         "esri/layers/ArcGISTiledMapServiceLayer",
+        "esri/graphic",
         "dojo/domReady!"],
-    function (Map, BootstrapMap, Point, Scalebar, FeatureLayer, ArcGISTiledMapServiceLayer) {
+    function (Map, BootstrapMap, Point, Scalebar, FeatureLayer, SimpleMarkerSymbol, SimpleLineSymbol, Color,
+              ArcGISTiledMapServiceLayer, Graphic) {
 
         var mapCenter = new Point(-122.88149, 47.04299);
-        var initialZoom = 8;
-        var defaultBasemap = 'topo';
+        var initialZoom = 9;
+        var defaultBasemap = 'gray';
 
         // create map object centered on Olympia, WA
         var map = BootstrapMap.create("mapDiv", {
@@ -62,23 +67,43 @@ require(["esri/map",
         // add click event listener for put-ins
         whitewater.on("click", function(event){
 
+            // clear the map graphics layer
+            map.graphics.clear();
+
+            // symbol for clicked loction
+            var pointSymbol = new SimpleMarkerSymbol(
+                SimpleMarkerSymbol.STYLE_CIRCLE,
+                12,
+                new SimpleLineSymbol(
+                    SimpleLineSymbol.STYLE_NULL,
+                    new Color([247, 34, 101, 0.9]),
+                    1
+                ),
+                new Color([207, 34, 171, 0.5])
+            );
+
+            // apply symbology to graphic
+            var graphic =  new Graphic(event.mapPoint, pointSymbol);
+            map.graphics.add(graphic);
+
             // access the attributes through event.graphic.attributes.<AttributeName>
             var attr = event.graphic.attributes;
 
             // create section string
             if (attr.nameSectionCommon) {
-                var section = attr.nameSection + ': ' + attr.nameSectionComon;
+                var linkName = attr.nameSection + ': ' + attr.nameSectionComon;
+            } else if (!attr.nameSection) {
+                var linkName = attr.nameRiver;
             } else {
-                var section = attr.nameSection;
+                var linkName = attr.nameSection;
             }
 
             // create link properties
             var linkUrl = "http://www.americanwhitewater.org/content/River/detail/id/" + attr.awid;
-            var linkName = section;
 
             // populate dom with values
             $('span#riverName').text(attr.nameRiver);
-            $('span#section').text(section);
+            $('span#section').text(linkName);
             $('span#difficulty').text(attr.difficulty);
             $('a#linkUrl').attr('href', linkUrl);
             $('span#linkName').text(linkName);
@@ -87,48 +112,60 @@ require(["esri/map",
         // form processing for filter by difficulty
         $('form#filterByDifficulty').submit( function() {
 
+            // clear any graphics left over from previous selections
+            map.graphics.clear();
+
             var diffArray = []; // array to store difficulty levels selected
             var query = ''; // store built query string
-            var counter = 0; // counter to store iterations though loop
 
-            // check for river difficulty checked
-            function checkDifficulty(elementId){
-                if ($(elementId).checked) {
-                    diffArray.push($(elementId).value);
-                }
+            // rapid difficulties
+            var difficultyIdArray = [
+                'classI',
+                'classII',
+                'classIII',
+                'classIV',
+                'classV',
+                'classVI'
+            ];
+
+            // iterate checked difficulties and populate difficultyIdArray for processing below
+            for (var i in difficultyIdArray) {
+
+                // save difficulty input element
+                var element = $('input#' + difficultyIdArray[i]);
+
+                // if the element is checked, add it to the array
+                if (element.prop('checked')) diffArray.push(element.val());
             }
-
-            // check all difficulties
-            checkDifficulty('I');
-            checkDifficulty('II');
-            checkDifficulty('III');
-            checkDifficulty('IV');
-            checkDifficulty('V');
-            checkDifficulty('VI');
 
             // if only interested in one difficulty
             if (diffArray.length === 1) {
 
                 // create single sql statement
-                query = "difficulty_max LIKE '{0}%'".format(diffArray[0]);
+                query = "difficulty_max LIKE '" + diffArray[0] + "' OR " +
+                    "difficulty_max LIKE '" + diffArray[0] + "+' OR " +
+                    "difficulty_max LIKE '" + diffArray[0] + "-'";
 
             // otherwise, if there are multiple difficulty levels checked
             } else {
 
                 // loop through every difficulty level
-                for (var diffLevel in diffArray){
+                for (var i in diffArray){
 
                     // if not the last, create sql for difficulty level and include 'OR' on the sql string
-                    if (diffArray.length > counter){
-                        query = query + " difficulty_max LIKE '{0}%' OR".format(diffArray[0]);
+                    if ((diffArray.length - 1) > i ) {
+                        query = query +
+                            "difficulty_max LIKE '" + diffArray[i] + "' OR " +
+                            "difficulty_max LIKE '" + diffArray[i] + "+' OR " +
+                            "difficulty_max LIKE '" + diffArray[i] + "-' OR ";
 
                     // if last in the array, do not add 'OR' onto the end of the string
                     } else {
-                        query = query + " difficulty_max LIKE '{0}%'".format(diffArray[0]);
+                        query = query +
+                            "difficulty_max LIKE '" + diffArray[i] + "' OR " +
+                            "difficulty_max LIKE '" + diffArray[i] + "+' OR " +
+                            "difficulty_max LIKE '" + diffArray[i] + "-'";
                     }
-
-                    // increment the counter
-                    counter++;
                 }
             }
 
